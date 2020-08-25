@@ -1,0 +1,3 @@
+[submodule "tweeny-cpp"]
+	path = tweeny-cpp
+	url = https://github.com/FerayAli/tweeny-cpp.git
