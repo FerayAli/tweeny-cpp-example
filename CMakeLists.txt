@@ -15,7 +15,10 @@ find_package(SFML ${SFML_VERSION} COMPONENTS ${SFML_COMPONENTS} REQUIRED)
 include_directories(${SFML_INCLUDE_DIR})
 
 add_subdirectory(tweeny-cpp)
-add_executable(${PROJECT_NAME} main.cpp)
+add_executable(${PROJECT_NAME} main.cpp
+                SFTweenSpecialization.h
+                EaseExample.cpp
+                EaseExample.h)
 
 target_link_libraries(${PROJECT_NAME} ${SFML_LIBRARIES} ${SFML_DEPENDENCIES})
 target_link_libraries(${PROJECT_NAME} tweeny)

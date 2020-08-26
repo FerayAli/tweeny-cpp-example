@@ -1,55 +1,8 @@
 #include <SFML/Graphics.hpp>
+#include "SFTweenSpecialization.h"
+#include "EaseExample.h"
 #include <tweeny/tweeny.h>
 #include <thread>
-
-namespace tweeny
-{
-template<typename T>
-struct tween_access<T, std::enable_if_t<std::is_base_of<sf::Transformable, T>::value>>
-{
-	static void set_position(T& object, const sf::Vector2f& pos)
-    {
-        object.setPosition(pos);
-    }
-
-	static sf::Vector2f get_position(const T& object)
-    {
-        return object.getPosition();
-    }
-
-	static void set_scale(T& object, const sf::Vector2f& scale)
-	{
-		object.setScale(scale);
-	}
-
-	static sf::Vector2f get_scale(const T& object)
-	{
-		return object.getScale();
-	}
-
-	static void set_rotation(T& object, const float& rotation)
-	{
-		object.setRotation(rotation);
-	}
-
-	static float get_rotation(const T& object)
-	{
-		return object.getRotation();
-	}
-
-	static void set_opacity(T& object, const int32_t& opacity)
-	{
-		auto c = object.getFillColor();
-		c.a = opacity;
-		object.setFillColor(c);
-	}
-
-	static int32_t get_opacity(const T& object)
-	{
-		return object.getFillColor().a;
-	}
-};
-} //end of namespace tweeny
 
 void DrawEaseFunction(sf::RenderWindow& window, sf::Vector2f pos, tweeny::ease_t ease_func)
 {
@@ -175,7 +128,8 @@ int main()
 		tweeny::tween_to(f, end, 1s, sentinel);
 	}
 
-
+	EaseExample easeExample;
+	easeExample.Init();
     while (window.isOpen())
     {
         std::this_thread::sleep_for(16ms);
@@ -190,12 +144,21 @@ int main()
             {
                 window.close();
             }
+
+			if (event.type == sf::Event::MouseButtonPressed)
+			{
+				if (event.mouseButton.button == sf::Mouse::Left)
+				{
+					easeExample.OnMouseButtonPressed(event.mouseButton.x, event.mouseButton.y);
+				}
+			}
+
         }
         window.clear();
 
 		window.draw(shape);
-        DrawEaseFunction(window, {50, 50}, tweeny::ease::smooth_start2);
-
+//        DrawEaseFunction(window, {50, 50}, tweeny::ease::smooth_start2);
+		easeExample.Draw(window);
 
         window.display();
     }
