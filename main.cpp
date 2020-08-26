@@ -81,73 +81,100 @@ int main()
 
 	sf::RectangleShape shape;
 
-	shape.setSize({30.0f, 30.0f});
+	shape.setSize({40.0f, 40.0f});
 	shape.setFillColor(sf::Color::Green);
 	shape.setPosition(300, 300);
 
     auto sentinel = std::make_shared<int>();
 
-	const auto stepDuration = 500ms;
-	auto moveByAction = [&]()
+	auto squareAnimations = [&]()
 	{
-		auto action1 = tweeny::move_by(shape, sf::Vector2f(100, 0), stepDuration, sentinel, tweeny::ease::smooth_stop3);
-		auto action2 = tweeny::move_by(shape, sf::Vector2f(0, 100), stepDuration, sentinel, tweeny::ease::smooth_stop3);
-		auto action3 = tweeny::move_by(shape, sf::Vector2f(-100, 0), stepDuration, sentinel, tweeny::ease::smooth_stop3);
-		auto action4 = tweeny::move_by(shape, sf::Vector2f(0, -100), stepDuration, sentinel, tweeny::ease::smooth_stop3);
-		return tweeny::sequence(action1, action2, action3, action4);
-	}();
-
-	auto scaleByAction = [&]()
-	{
-		auto action1 = tweeny::scale_by(shape, sf::Vector2f(0.5, 0.5), stepDuration, sentinel, tweeny::ease::smooth_stop3);
-		auto action2 = tweeny::scale_by(shape, sf::Vector2f(-0.5, -0.5), stepDuration, sentinel, tweeny::ease::smooth_stop3);
-		auto action3 = tweeny::scale_by(shape, sf::Vector2f(1, 1), stepDuration, sentinel, tweeny::ease::smooth_stop3);
-		auto action4 = tweeny::scale_by(shape, sf::Vector2f(-1, -1), stepDuration, sentinel, tweeny::ease::smooth_stop3);
-		return tweeny::sequence(action1, action2, action3, action4);
-	}();
-
-	auto rotateByAction = [&]()
-	{
-		auto action = tweeny::rotate_by(shape, 90.0f, stepDuration, sentinel, tweeny::ease::smooth_stop3);
-		return tweeny::repeat(action, 4);
-	}();
-
-	auto fadeAction = [&]()
-	{
-		auto action1 = tweeny::fade_from_to(shape, 0, 255, stepDuration, sentinel, tweeny::ease::smooth_stop3);
-		auto action2 = tweeny::fade_to(shape, 0, stepDuration, sentinel, tweeny::ease::smooth_stop3);
-		auto action3 = tweeny::fade_by(shape, 255, stepDuration, sentinel, tweeny::ease::smooth_stop3);
-		auto action4 = tweeny::delay(stepDuration);
-
-		return tweeny::sequence(action1, action2, action3, action4);
-	}();
-
-	auto togetherAction = tweeny::together(moveByAction, scaleByAction, rotateByAction, fadeAction);
-	auto repeatAction = tweeny::repeat(togetherAction);
-
-	tweeny::start(repeatAction);
-
-	auto speedControlAction = [&]()
-	{
-		auto tweenId = repeatAction.get_id();
-
-		auto speederAction = tweeny::delay(stepDuration);
-		speederAction.on_end = [tweenId]()
+		const auto stepDuration = 500ms;
+		auto moveByAction = [&]()
 		{
-			auto speed = tweeny::get_speed_multiplier(tweenId);
-			tweeny::set_speed_multiplier(tweenId, speed + 0.2f);
-		};
+			auto action1 = tweeny::move_by(shape, sf::Vector2f(100, 0), stepDuration, sentinel, tweeny::ease::smooth_stop3);
+			auto action2 = tweeny::move_by(shape, sf::Vector2f(0, 100), stepDuration, sentinel, tweeny::ease::smooth_stop3);
+			auto action3 = tweeny::move_by(shape, sf::Vector2f(-100, 0), stepDuration, sentinel, tweeny::ease::smooth_stop3);
+			auto action4 = tweeny::move_by(shape, sf::Vector2f(0, -100), stepDuration, sentinel, tweeny::ease::smooth_stop3);
+			return tweeny::sequence(action1, action2, action3, action4);
+		}();
 
-		auto slowerAction = tweeny::delay(stepDuration);
-		slowerAction.on_end = [tweenId]()
+		auto scaleByAction = [&]()
 		{
-			auto speed = tweeny::get_speed_multiplier(tweenId);
-			tweeny::set_speed_multiplier(tweenId, speed - 0.2f);
-		};
+			auto action1 = tweeny::scale_by(shape, sf::Vector2f(0.5, 0.5), stepDuration, sentinel, tweeny::ease::smooth_stop3);
+			auto action2 = tweeny::scale_by(shape, sf::Vector2f(-0.5, -0.5), stepDuration, sentinel, tweeny::ease::smooth_stop3);
+			auto action3 = tweeny::scale_by(shape, sf::Vector2f(1, 1), stepDuration, sentinel, tweeny::ease::smooth_stop3);
+			auto action4 = tweeny::scale_by(shape, sf::Vector2f(-1, -1), stepDuration, sentinel, tweeny::ease::smooth_stop3);
+			return tweeny::sequence(action1, action2, action3, action4);
+		}();
 
-		return tweeny::sequence(tweeny::repeat(speederAction, 5), tweeny::repeat(slowerAction, 5));
-	}();
-	tweeny::start(tweeny::repeat(speedControlAction));
+		auto rotateByAction = [&]()
+		{
+			auto action = tweeny::rotate_by(shape, 90.0f, stepDuration, sentinel, tweeny::ease::smooth_stop3);
+			return tweeny::repeat(action, 4);
+		}();
+
+		auto fadeAction = [&]()
+		{
+			auto action1 = tweeny::fade_from_to(shape, 100, 255, stepDuration, sentinel, tweeny::ease::smooth_stop3);
+			auto action2 = tweeny::fade_to(shape, 100, stepDuration, sentinel, tweeny::ease::smooth_stop3);
+			auto action3 = tweeny::fade_by(shape, 155, stepDuration, sentinel, tweeny::ease::smooth_stop3);
+			auto action4 = tweeny::delay(stepDuration);
+
+			return tweeny::sequence(action1, action2, action3, action4);
+		}();
+
+		auto togetherAction = tweeny::together(moveByAction, scaleByAction, rotateByAction, fadeAction);
+		auto repeatAction = tweeny::repeat(togetherAction);
+
+		tweeny::start(repeatAction);
+
+		auto speedControlAction = [&]()
+		{
+			auto tweenId = repeatAction.get_id();
+
+			auto speederAction = tweeny::delay(stepDuration);
+			speederAction.on_end = [tweenId]()
+			{
+				auto speed = tweeny::get_speed_multiplier(tweenId);
+				tweeny::set_speed_multiplier(tweenId, speed + 0.2f);
+			};
+
+			auto slowerAction = tweeny::delay(stepDuration);
+			slowerAction.on_end = [tweenId]()
+			{
+				auto speed = tweeny::get_speed_multiplier(tweenId);
+				tweeny::set_speed_multiplier(tweenId, speed - 0.2f);
+			};
+
+			return tweeny::sequence(tweeny::repeat(speederAction, 5), tweeny::repeat(slowerAction, 5));
+		}();
+		tweeny::start(tweeny::repeat(speedControlAction));
+	};
+
+	squareAnimations();
+
+	auto shake = tweeny::shake(shape, sf::Vector2f(20.0f, 0.0f), sentinel);
+	auto seq = tweeny::sequence(shake, tweeny::delay(500ms));
+	tweeny::start(tweeny::repeat(seq));
+
+	{
+		std::vector<tweeny::tween_action> actions1;
+		tweeny::sequence(actions1);
+
+		std::vector<tweeny::tween_value<float>> actions2;
+		tweeny::sequence(actions2);
+
+		std::vector<std::shared_ptr<tweeny::tween_base_impl>> actions3;
+		tweeny::sequence(actions3);
+	}
+
+	{
+		float f = 1.0f;
+		int end = 2;
+		tweeny::tween_to(f, end, 1s, sentinel);
+	}
+
 
     while (window.isOpen())
     {
