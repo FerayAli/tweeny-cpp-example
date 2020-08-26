@@ -4,22 +4,52 @@
 
 namespace tweeny
 {
-
-template<>
-struct tween_access<sf::CircleShape>
+template<typename T>
+struct tween_access<T, std::enable_if_t<std::is_base_of<sf::Transformable, T>::value>>
 {
-    static void set_position(sf::CircleShape& object, const sf::Vector2f& pos)
+	static void set_position(T& object, const sf::Vector2f& pos)
     {
         object.setPosition(pos);
     }
 
-    static sf::Vector2f get_position(const sf::CircleShape& object)
+	static sf::Vector2f get_position(const T& object)
     {
         return object.getPosition();
     }
-};
 
-}
+	static void set_scale(T& object, const sf::Vector2f& scale)
+	{
+		object.setScale(scale);
+	}
+
+	static sf::Vector2f get_scale(const T& object)
+	{
+		return object.getScale();
+	}
+
+	static void set_rotation(T& object, const float& rotation)
+	{
+		object.setRotation(rotation);
+	}
+
+	static float get_rotation(const T& object)
+	{
+		return object.getRotation();
+	}
+
+	static void set_opacity(T& object, const int32_t& opacity)
+	{
+		auto c = object.getFillColor();
+		c.a = opacity;
+		object.setFillColor(c);
+	}
+
+	static int32_t get_opacity(const T& object)
+	{
+		return object.getFillColor().a;
+	}
+};
+} //end of namespace tweeny
 
 void DrawEaseFunction(sf::RenderWindow& window, sf::Vector2f pos, tweeny::ease_t ease_func)
 {
@@ -49,24 +79,75 @@ int main()
 {
     sf::RenderWindow window(sf::VideoMode(800, 600), "SFML window");
 
-    sf::CircleShape circle;
-    circle.setRadius(30.0f);
-    circle.setFillColor(sf::Color::Green);
-    circle.setPosition(300, 300);
+	sf::RectangleShape shape;
+
+	shape.setSize({30.0f, 30.0f});
+	shape.setFillColor(sf::Color::Green);
+	shape.setPosition(300, 300);
 
     auto sentinel = std::make_shared<int>();
 
-    auto action1 = tweeny::delay(0s);
-    auto action2 = tweeny::move_by(circle, sf::Vector2f(100, 0), 250ms, sentinel, tweeny::ease::smooth_stop3);
-    auto action3 = tweeny::move_by(circle, sf::Vector2f(0, 100), 250ms, sentinel, tweeny::ease::smooth_stop3);
-    auto action4 = tweeny::move_by(circle, sf::Vector2f(-100, 0), 250ms, sentinel, tweeny::ease::smooth_stop3);
-    auto action5 = tweeny::move_by(circle, sf::Vector2f(0, -100), 250ms, sentinel, tweeny::ease::smooth_stop3);
+	const auto stepDuration = 500ms;
+	auto moveByAction = [&]()
+	{
+		auto action1 = tweeny::move_by(shape, sf::Vector2f(100, 0), stepDuration, sentinel, tweeny::ease::smooth_stop3);
+		auto action2 = tweeny::move_by(shape, sf::Vector2f(0, 100), stepDuration, sentinel, tweeny::ease::smooth_stop3);
+		auto action3 = tweeny::move_by(shape, sf::Vector2f(-100, 0), stepDuration, sentinel, tweeny::ease::smooth_stop3);
+		auto action4 = tweeny::move_by(shape, sf::Vector2f(0, -100), stepDuration, sentinel, tweeny::ease::smooth_stop3);
+		return tweeny::sequence(action1, action2, action3, action4);
+	}();
 
-    auto action6 = tweeny::sequence(action2, action3, action4, action5);
+	auto scaleByAction = [&]()
+	{
+		auto action1 = tweeny::scale_by(shape, sf::Vector2f(0.5, 0.5), stepDuration, sentinel, tweeny::ease::smooth_stop3);
+		auto action2 = tweeny::scale_by(shape, sf::Vector2f(-0.5, -0.5), stepDuration, sentinel, tweeny::ease::smooth_stop3);
+		auto action3 = tweeny::scale_by(shape, sf::Vector2f(1, 1), stepDuration, sentinel, tweeny::ease::smooth_stop3);
+		auto action4 = tweeny::scale_by(shape, sf::Vector2f(-1, -1), stepDuration, sentinel, tweeny::ease::smooth_stop3);
+		return tweeny::sequence(action1, action2, action3, action4);
+	}();
 
-    tweeny::start(tweeny::repeat(action6));
+	auto rotateByAction = [&]()
+	{
+		auto action = tweeny::rotate_by(shape, 90.0f, stepDuration, sentinel, tweeny::ease::smooth_stop3);
+		return tweeny::repeat(action, 4);
+	}();
 
+	auto fadeAction = [&]()
+	{
+		auto action1 = tweeny::fade_from_to(shape, 0, 255, stepDuration, sentinel, tweeny::ease::smooth_stop3);
+		auto action2 = tweeny::fade_to(shape, 0, stepDuration, sentinel, tweeny::ease::smooth_stop3);
+		auto action3 = tweeny::fade_by(shape, 255, stepDuration, sentinel, tweeny::ease::smooth_stop3);
+		auto action4 = tweeny::delay(stepDuration);
 
+		return tweeny::sequence(action1, action2, action3, action4);
+	}();
+
+	auto togetherAction = tweeny::together(moveByAction, scaleByAction, rotateByAction, fadeAction);
+	auto repeatAction = tweeny::repeat(togetherAction);
+
+	tweeny::start(repeatAction);
+
+	auto speedControlAction = [&]()
+	{
+		auto tweenId = repeatAction.get_id();
+
+		auto speederAction = tweeny::delay(stepDuration);
+		speederAction.on_end = [tweenId]()
+		{
+			auto speed = tweeny::get_speed_multiplier(tweenId);
+			tweeny::set_speed_multiplier(tweenId, speed + 0.2f);
+		};
+
+		auto slowerAction = tweeny::delay(stepDuration);
+		slowerAction.on_end = [tweenId]()
+		{
+			auto speed = tweeny::get_speed_multiplier(tweenId);
+			tweeny::set_speed_multiplier(tweenId, speed - 0.2f);
+		};
+
+		return tweeny::sequence(tweeny::repeat(speederAction, 5), tweeny::repeat(slowerAction, 5));
+	}();
+	tweeny::start(tweeny::repeat(speedControlAction));
 
     while (window.isOpen())
     {
@@ -78,14 +159,14 @@ int main()
         while (window.pollEvent(event))
         {
             // Close window: exit
-            if (event.type == sf::Event::Closed)
+			if(event.type == sf::Event::Closed)
             {
                 window.close();
             }
         }
         window.clear();
 
-        window.draw(circle);
+		window.draw(shape);
         DrawEaseFunction(window, {50, 50}, tweeny::ease::smooth_start2);
 
 
