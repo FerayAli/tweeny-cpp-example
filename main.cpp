@@ -123,9 +123,9 @@ int main()
 	}
 
 	{
-		float f = 1.0f;
-		int end = 2;
-		tweeny::tween_to(f, end, 1s, sentinel);
+		float i = 30;
+		std::string s;
+		tweeny::tween_to(i, 11, 1s, sentinel, tweeny::ease::smooth_stop3);
 	}
 
 	EaseExample easeExample;

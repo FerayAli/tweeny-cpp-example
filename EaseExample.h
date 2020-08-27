@@ -24,6 +24,7 @@ private:
 	void TweenExample4();
 	void CreateButton(const std::string& text, const std::function<void()>& onClick);
 
-	std::vector<ButtonExample> m_easeButtons;
+	std::vector<ButtonExample> m_tweenButtons;
+	std::vector<sf::RectangleShape> m_shapes;
 	std::shared_ptr<int> m_sentinel = std::make_shared<int>();
 };
